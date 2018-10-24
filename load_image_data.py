@@ -37,8 +37,6 @@ def getImageArr( path , width , height , imgNorm="sub_mean" , odering='channels_
 
 
 def getSegmentationArr( path ,  width , height  ):
-
-	seg_labels = np.zeros((  height , width  , 1 ))
 	try:
 		img = cv2.imread(path, 1)
 		img = cv2.resize(img, ( width , height ))
@@ -47,12 +45,12 @@ def getSegmentationArr( path ,  width , height  ):
 	except Exception, e:
 		print e
 		
-	seg_labels = np.reshape(seg_labels, ( width*height , 1))
+	seg_labels = np.reshape(img, ( width*height , 1))
 	return seg_labels
 
 
 
-def imageSegmentationGenerator( images_path , segs_path ,  batch_size,  n_classes , input_height , input_width , output_height , output_width   ):
+def imageSegmentationGenerator( images_path , segs_path , input_height , input_width , output_height , output_width   ):
 	
 	assert images_path[-1] == '/'
 	assert segs_path[-1] == '/'
@@ -68,15 +66,14 @@ def imageSegmentationGenerator( images_path , segs_path ,  batch_size,  n_classe
 
 	zipped = itertools.cycle( zip(images,segmentations) )
 
-	while True:
-		X = []
-		Y = []
-		for _ in range( batch_size) :
-			im , seg = zipped.next()
-			X.append( getImageArr(im , input_width , input_height )  )
-			Y.append( getSegmentationArr( seg , output_width , output_height )  )
+	X = []
+	Y = []
+	for _ in range( len( images )) :
+		im , seg = zipped.next()
+		X.append( getImageArr(im , input_width , input_height )  )
+		Y.append( getSegmentationArr( seg , output_width , output_height )  )
 
-		yield np.array(X) , np.array(Y)
+	return np.array(X) , np.array(Y)
 
 
 # import Models , LoadBatches
