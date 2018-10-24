@@ -46,4 +46,4 @@ if validate:
 	val_segs_path = args.val_annotations
 	val_batch_size = args.val_batch_size
   
-model = tf_carvana_unet_model()
+model = keras_carvana_unet_model()
