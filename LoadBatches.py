@@ -5,7 +5,7 @@ import glob
 import itertools
 
 
-def getImageArr( path , width , height , imgNorm="sub_mean" , odering='channels_first' ):
+def getImageArr( path , width , height , imgNorm="sub_mean" , odering='channels_last' ):
 
 	try:
 		img = cv2.imread(path, 1)
