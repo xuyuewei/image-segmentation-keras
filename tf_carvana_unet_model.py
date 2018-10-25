@@ -1,19 +1,15 @@
 import bce_dice_loss
 
-from tensorflow.keras import layers as kl
-from tensorflow.keras.models import Model
+import tensorflow as tf
+import tensorflow.contrib as tfcontrib
+from tensorflow.python.keras import layers
+from tensorflow.python.keras import losses
+from tensorflow.python.keras import models
+from tensorflow.python.keras import backend as K
 
 import numpy as np
-import tensorflow as tf
 
 def conv_block(input_tensor, num_filters):
-    encoder = kl.Conv2D(num_filters, (3, 3), strides=(1, 1), padding='same')(input_tensor)
-    encoder = kl.BatchNormalization()(encoder)
-    encoder = kl.ReLU()(encoder)
-    encoder = kl.Conv2D(num_filters, (3, 3), strides=(1, 1), padding='same')(encoder)
-    encoder = kl.BatchNormalization()(encoder)
-    encoder = kl.ReLU()(encoder)
-    '''
     #tf implemention
     encoder = layers.Activation('relu')(encoder)
     encoder = layers.Conv2D(num_filters, (3, 3), padding='same')(input_tensor)
@@ -21,28 +17,14 @@ def conv_block(input_tensor, num_filters):
     encoder = layers.Activation('relu')(encoder)
     encoder = layers.Conv2D(num_filters, (3, 3), padding='same')(encoder)
     encoder = layers.BatchNormalization()(encoder)
-    '''
     return encoder
 
 def encoder_block(input_tensor, num_filters):
     encoder = conv_block(input_tensor, num_filters)
-    encoder_pool = kl.MaxPooling2D(pool_size=(2,2), strides=(2, 2))(encoder)
-    #encoder_pool = layers.MaxPooling2D((2, 2), strides=(2, 2))(encoder)
-    
+    encoder_pool = layers.MaxPooling2D((2, 2), strides=(2, 2))(encoder)
     return encoder_pool, encoder
     
 def decoder_block(input_tensor, concat_tensor, num_filters):
-    decoder = kl.Conv2DTranspose(num_filters, (2, 2), strides=(2, 2), padding='same')(input_tensor)
-    decoder = kl.Concatenate(axis=-1)([concat_tensor, decoder])
-    decoder = kl.BatchNormalization()(decoder)
-    decoder = kl.ReLU()(decoder)
-    decoder = kl.Conv2D(num_filters, (3, 3), strides=(1, 1), padding='same')(decoder)
-    decoder = kl.BatchNormalization()(decoder)
-    decoder = kl.ReLU()(decoder)
-    decoder = kl.Conv2D(num_filters, (3, 3), strides=(1, 1), padding='same')(decoder)
-    decoder = kl.BatchNormalization()(decoder)
-    decoder = kl.ReLU()(decoder)
-    '''
     decoder = layers.Conv2DTranspose(num_filters, (2, 2), strides=(2, 2), padding='same')(input_tensor)
     decoder = layers.concatenate([concat_tensor, decoder], axis=-1)
     decoder = layers.BatchNormalization()(decoder)
@@ -53,10 +35,9 @@ def decoder_block(input_tensor, concat_tensor, num_filters):
     decoder = layers.Conv2D(num_filters, (3, 3), padding='same')(decoder)
     decoder = layers.BatchNormalization()(decoder)
     decoder = layers.Activation('relu')(decoder)
-    '''
     return decoder
 
-def unet(img_shape,loss = bce_dice_loss,optimizer='adam',metrics=[dice_loss]):
+def unet(img_shape = (256,256),loss = bce_dice_loss,optimizer='adam',metrics=[dice_loss]):
     inputs = kl.Input(shape=img_shape)
     # 256
     encoder0_pool, encoder0 = encoder_block(inputs, 32)
@@ -83,8 +64,8 @@ def unet(img_shape,loss = bce_dice_loss,optimizer='adam',metrics=[dice_loss]):
     # 256 
     outputs = layers.Conv2D(1, (1, 1), activation='sigmoid')(decoder0)
     
-    model = Model(inputs=[inputs], outputs=[outputs])
+    unet_model = models.Model(inputs=[inputs], outputs=[outputs])
     
-    model.summary()
-    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    return model
+    unet_model.summary()
+    unet_model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    return unet_model
