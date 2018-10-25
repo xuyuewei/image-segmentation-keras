@@ -1,4 +1,4 @@
-# Image Segmentation Keras : Implementation of Segnet, FCN, UNet and other models in Keras.
+# Image Segmentation : Implementation of Segnet, FCN, UNet and other models.
 
 Implememnation of various Deep Image Segmentation models in keras. 
 
@@ -19,12 +19,15 @@ Implememnation of various Deep Image Segmentation models in keras.
 * VGG Segnet 
 * U-Net
 * VGG U-Net
+* U-Net_tf
 
 ## Getting Started
 
 ### Prerequisites
 
 * Keras 2.0
+* pandas
+* tensorflow r1.11
 * opencv for python
 * Theano 
 
