@@ -1,5 +1,5 @@
 import argparse
-import tf_carvana_unet_model,load_image_data
+import tf_unet_model
 import bce_dice_loss
 import tf_img_prepro_aug
 
@@ -37,4 +37,4 @@ if validate:
 	val_segs_path = args.val_segs_path
 	val_batch_size = args.val_batch_size
   
-model = keras_carvana_unet_model()
+model = tf_unet_model()
