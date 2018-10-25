@@ -33,12 +33,32 @@ def ranflip_img(input_img, label_img,horizontal_flip, vertical_flip):
 									   lambda: (input_img, label_img))
     return input_img, label_img
 
+def flipran_img(input_img, label_img):
+	flip_prob = tf.random_uniform([], 0.0, 1.0)
+    input_img, label_img = tf.cond(tf.less(flip_prob, 0.3),
+								   lambda: (tf.image.flip_up_down(tf.image.flip_left_right(input_img)), 
+											tf.image.flip_up_down(tf.image.flip_left_right(label_img))),
+								   lambda: tf.cond(tf.less(flip_prob,0.6),
+												   lambda:(tf.image.flip_up_down(input_img), 
+														   tf.image.flip_up_down(label_img)),
+												   lambda:(tf.image.flip_left_right(input_img),
+														   tf.image.flip_left_right(label_img))))
+								   
+		
+    return input_img, label_img
+
 def ranrot_img(input_img, label_img,angle):
 	if angle:
 		rot_prob = tf.random_uniform([], 0.0, 1.0)
         input_img, label_img = tf.cond(tf.less(flip_prob, 0.5),
 									   lambda: (tf.contrib.image.rotate(input_img,angle), tf.contrib.image.rotate(label_img,angle)),
 									   lambda: (input_img, label_img))
+	return input_img, label_img
+
+def rot_randomangle(input_img, label_img,angle):
+	if angle:
+		random_angle = tf.random_uniform([], 0.1, 1.0)*3.14*angle/180
+        input_img, label_img = tf.contrib.image.rotate(input_img,angle), tf.contrib.image.rotate(label_img,random_angle)
 	return input_img, label_img
 
 def augmentation(input_img,
@@ -48,8 +68,11 @@ def augmentation(input_img,
 				 hue_delta = 0,  # Adjust the hue of an RGB image by random factor
 				 brightness = 0,
 				 saturation = 0,
-				 horizontal_flip = False,  # Random left right flip,
-				 vertical_flip = False,
+				 ranhorizontal_flip = False,  # Random left right flip,
+				 ranvertical_flip = False,
+				 ran_flip = False,
+				 ranrot = False,
+				 angle = 0,
 				 width_shift_range=0,  # Randomly translate the image horizontally
 				 height_shift_range=0):  # Randomly translate the image vertically 
 	
@@ -67,9 +90,18 @@ def augmentation(input_img,
 	if saturation:
         input_img = tf.image.random_saturation(input_img, saturation) 
 
-	input_img, label_img = ranflip_img(input_img, label_img, horizontal_flip, vertical_flip)
+	if ran_flip:
+		input_img, label_img = ranflip_img(input_img, label_img, horizontal_flip, vertical_flip)
+  	else:
+		input_img, label_img = flipran_img(input_img, label_img)
+		
+	if ranrot:
+		input_img, label_img = ranrot_img(input_img, label_img, angle)
+	else:
+		input_img, label_img = rot_randomangle(input_img, label_img, angle)
+
     input_img, label_img = shift_img(input_img, label_img, width_shift_range, height_shift_range)
-	input_img, label_img = ranrot_img(input_img, label_img, angle)
+	
     label_img = tf.to_float(label_img) * scale
     input_img = tf.to_float(input_img) * scale 
 	
