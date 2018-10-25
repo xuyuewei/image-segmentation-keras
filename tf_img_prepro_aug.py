@@ -7,7 +7,7 @@ def load_jpeg(image_path):
   	image = tf.cast(image, tf.float32)
 	return image
 
-def ranshift_img(input_img, label_img, width_shift_range, height_shift_range):
+def shift_img(input_img, label_img, width_shift_range, height_shift_range):
     """This fn will perform the horizontal or vertical shift"""
     if width_shift_range:
         width_shift_range = tf.random_uniform([], -width_shift_range * img_shape[1],
@@ -68,7 +68,7 @@ def augmentation(input_img,
         input_img = tf.image.random_saturation(input_img, saturation) 
 
 	input_img, label_img = ranflip_img(input_img, label_img, horizontal_flip, vertical_flip)
-    input_img, label_img = ranshift_img(input_img, label_img, width_shift_range, height_shift_range)
+    input_img, label_img = shift_img(input_img, label_img, width_shift_range, height_shift_range)
 	input_img, label_img = ranrot_img(input_img, label_img, angle)
     label_img = tf.to_float(label_img) * scale
     input_img = tf.to_float(input_img) * scale 
