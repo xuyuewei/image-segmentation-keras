@@ -63,13 +63,21 @@ def ranrot_img(input_img, label_img,angle):
 
 def rot_randomangle(input_img, label_img,angle):
 	if angle:
-		random_angle = tf.random_uniform([], 0.1, 1.0)*3.14*angle/180
+		random_angle = tf.random_uniform([], 0.3, 1.0)*3.14*angle/180
         input_img, label_img = tf.contrib.image.rotate(input_img,angle), tf.contrib.image.rotate(label_img,random_angle)
 	return input_img, label_img
 
+def projective_random_transform(img,label,angle,img_size):
+    if angle:
+		random_angle = tf.random_uniform([], 0.5, 1.0)*angle
+        transform = tf.contrib.image.angles_to_projective_transforms(angles,img_size[0],img_size[1])
+        img = tf.contrib.image.transform(img,transform)
+        label = tf.contrib.image.transform(label,transform)
+    return img,label
+
 def augmentation(input_img,
 				 label_img,
-				 resize = [128, 256], # Resize the image to some size e.g. [256, 256]
+				 resize = [256, 256], # Resize the image to some size e.g. [256, 256]
 				 scale = 1,  # Scale image e.g. 1 / 255.
 				 hue_delta = 0,  # Adjust the hue of an RGB image by random factor
 				 brightness = 0,
@@ -79,6 +87,7 @@ def augmentation(input_img,
 				 ran_flip = False,
 				 ranrot = False,
 				 angle = 0,
+                 projective_transform = 90,
 				 width_shift_range=0,  # Randomly translate the image horizontally
 				 height_shift_range=0):  # Randomly translate the image vertically 
 	
@@ -86,7 +95,10 @@ def augmentation(input_img,
         # Resize both images
         label_img = tf.image.resize_images(label_img, resize)
         input_img = tf.image.resize_images(input_img, resize)
-		
+	
+    if projective_transform:
+         input_img, label_img = projective_random_transform(img,label,projective_transform,resize)
+        
 	if hue_delta:
         input_img = tf.image.random_hue(input_img, hue_delta) 
 	
