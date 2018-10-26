@@ -7,6 +7,12 @@ def load_jpeg(image_path):
   	image = tf.cast(image, tf.float32)
 	return image
 
+def train_val_split(img_array,ratio = 10):
+    num_of_samples = len(img_array)
+	random_index = tf.random_uniform(num_of_samples//ratio , minval = 0,maxval = num_of_samples,dtype = tf.int32)
+    val_data = [img_array[x] for x in random_index]
+    return val_data
+
 def shift_img(input_img, label_img, width_shift_range, height_shift_range):
     """This fn will perform the horizontal or vertical shift"""
     if width_shift_range:
