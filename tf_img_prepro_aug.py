@@ -79,9 +79,9 @@ def augmentation(input_img,
 				 label_img,
 				 resize = [256, 256], # Resize the image to some size e.g. [256, 256]
 				 scale = 1,  # Scale image e.g. 1 / 255.
-				 hue_delta = 0,  # Adjust the hue of an RGB image by random factor
-				 brightness = 0,
-				 saturation = 0,
+				 hue_delta = 0.2,  # Adjust the hue of an RGB image by random factor
+				 brightness = 0.3,
+				 saturation = 0.2,
 				 ranhorizontal_flip = False,  # Random left right flip,
 				 ranvertical_flip = False,
 				 ran_flip = False,
@@ -95,28 +95,26 @@ def augmentation(input_img,
         # Resize both images
         label_img = tf.image.resize_images(label_img, resize)
         input_img = tf.image.resize_images(input_img, resize)
-	
-    if projective_transform:
-         input_img, label_img = projective_random_transform(img,label,projective_transform,resize)
-        
-	if hue_delta:
-        input_img = tf.image.random_hue(input_img, hue_delta) 
-	
-	if brightness:
-        input_img = tf.image.random_brightness(input_img, brightness) 
 		
-	if saturation:
+	random_array = tf.random_uniform([2], 0.0, 1.0)
+	
+    if tf.less(random_array[0], 0.5):
+        input_img, label_img = projective_random_transform(img,label,projective_transform,resize)
+	else:
+        input_img = tf.image.random_hue(input_img, hue_delta) 
+        input_img = tf.image.random_brightness(input_img, brightness) 
         input_img = tf.image.random_saturation(input_img, saturation) 
 
-	if ran_flip:
-		input_img, label_img = ranflip_img(input_img, label_img, horizontal_flip, vertical_flip)
-  	else:
-		input_img, label_img = flipran_img(input_img, label_img)
-		
-	if ranrot:
-		input_img, label_img = ranrot_img(input_img, label_img, angle)
+	if tf.less(random_array[1], 0.5):
+		if ran_flip:
+			input_img, label_img = ranflip_img(input_img, label_img, horizontal_flip, vertical_flip)
+  		else:
+			input_img, label_img = flipran_img(input_img, label_img)
 	else:
-		input_img, label_img = rot_randomangle(input_img, label_img, angle)
+		if ranrot:
+			input_img, label_img = ranrot_img(input_img, label_img, angle)
+		else:
+			input_img, label_img = rot_randomangle(input_img, label_img, angle)
 
     input_img, label_img = shift_img(input_img, label_img, width_shift_range, height_shift_range)
 	
