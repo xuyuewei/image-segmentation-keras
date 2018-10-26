@@ -86,7 +86,7 @@ def augmentation(input_img,
 				 ranvertical_flip = False,
 				 ran_flip = False,
 				 ranrot = False,
-				 angle = 0,
+				 angle = 90,
                  projective_transform = 90,
 				 width_shift_range=0,  # Randomly translate the image horizontally
 				 height_shift_range=0):  # Randomly translate the image vertically 
