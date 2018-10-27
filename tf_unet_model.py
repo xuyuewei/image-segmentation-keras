@@ -62,7 +62,7 @@ def unet(img_shape = (256,256),loss = bce_dice_loss,optimizer='adam',metrics=[di
     # 128
     decoder0 = decoder_block(decoder1, encoder0, 32)
     # 256 
-    outputs = layers.Conv2D(1, (1, 1), activation='sigmoid')(decoder0)
+    outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(decoder0)
     
     unet_model = models.Model(inputs=[inputs], outputs=[outputs])
     
