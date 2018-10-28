@@ -4,7 +4,6 @@ import cv2 as cv
 def cv_from_seg_to_bbox(segment,
                         process_size = 128
                         img_wdepth = 8,
-                        num_of_bins = 7,
                         kernel_size = (5,5)):
     
     h,w = segment.shape[0],segment.shape[1]
@@ -17,25 +16,17 @@ def cv_from_seg_to_bbox(segment,
     masks = []
     kernel = np.ones((5,5),np.uint8)
     img_color_scale = pow(2,img_wdepth)
-    bin_range = color_scale//num_of_bins
     bounding_box = []
 
-    #caculate the color range of mask
-    hists.append(cv.calcHist([cv.equalizeHist(hsv_segment[0])],None,None,[num_of_bins],[0,180]))
-    hists.append(cv.calcHist([hsv_segment],[1],None,[1],[0,30]))
-    hists.append(cv.calcHist([hsv_segment],[2],None,[1],[0,46]))
+    hsv_mask[0] = cv.equalizeHist(hsv_mask[0])
 
-
-    color_space = [[[i*bin_range,43,46],
-                    [i*bin_range+bin_range,255,255]] for i in range(num_of_bins)]
+    color_space = [[[0,43,46],[10,255,255]],[[156,43,46],[180,255,255]],[[11,43,46],[25,255,255]],[[26,43,46],[34,255,255]],
+                   [[35,43,46],[77,255,255]],[[78,43,46],[99,255,255]],[[100,43,46],[124,255,255]],[[125,43,46],[155,255,255]]]
     
-    if hists[1][0] > process_size:
-        color_space.append([[0,0,221],[180,30,255]])
 
-    if hists[2][0] > process_size:
-        color_space.append([[0,0,0],[180,255,46]])
+    
 
-    color_space = np.array(color_space.append([[0,0,46],[180,43,220]]))
+    color_space = np.array(color_space.extend([[[0,0,221],[180,30,255]],[[0,0,0],[180,255,46]],[[0,0,46],[180,43,220]]])))
 
     for cs in color_space:
         mask = cv.inRange(hsv_segment, cs[0], cs[1])
