@@ -38,7 +38,7 @@ def decoder_block(input_tensor, concat_tensor, num_filters):
     return decoder
 
 def unet(img_shape = (256,256),loss = bce_dice_loss,optimizer='adam',metrics=[dice_loss]):
-    inputs = kl.Input(shape=img_shape)
+    inputs = layers.Input(shape=img_shape)
     # 256
     encoder0_pool, encoder0 = encoder_block(inputs, 32)
     # 128
