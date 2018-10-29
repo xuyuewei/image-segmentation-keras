@@ -11,12 +11,12 @@ import numpy as np
 
 def conv_block(input_tensor, num_filters):
     #tf implemention
-    encoder = layers.Activation('relu')(encoder)
     encoder = layers.Conv2D(num_filters, (3, 3), padding='same')(input_tensor)
     encoder = layers.BatchNormalization()(encoder)
     encoder = layers.Activation('relu')(encoder)
     encoder = layers.Conv2D(num_filters, (3, 3), padding='same')(encoder)
     encoder = layers.BatchNormalization()(encoder)
+    encoder = layers.Activation('relu')(encoder)
     return encoder
 
 def encoder_block(input_tensor, num_filters):
