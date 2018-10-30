@@ -48,7 +48,7 @@ if validate:
     val_data = val_data.batch(batch_size)
 
 #data augmentation
-img_labels_data = img_labels.map(lambda x: (load_jpeg(x[0])[:,:input_width//2],load_jpeg(x[0])[:,input_width//2:])) 
+img_labels_data = img_labels.map(lambda x: (load_jpeg(x[0])[:,:input_width//2],load_jpeg(x[1])[:,input_width//2:])) 
 aug_train_data = img_labels_data.map(lambda x:augmentation(x[0],x[1],scale = 1/255))
 img_labels_data = img_labels_data.concatenate(aug_train_data)
 img_labels_data = img_labels_data.batch(batch_size)
