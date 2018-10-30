@@ -9,8 +9,6 @@ from tensorflow.python.keras import backend as K
 
 import numpy as np
 
-#selfmade_shallow part of the resnet_50
-
 def conv_block(input_tensor, num_filters):
     #tf implemention
     encoder = layers.Conv2D(num_filters, (3, 3), padding='same')(input_tensor)
@@ -30,15 +28,16 @@ def res_convtrans_u_block(input_tensor, concat_tensor, num_filters):
     #convtrans
     decoder = layers.Conv2DTranspose(num_filters, (2, 2), strides=(2, 2), padding='same')(input_tensor)
     #U_block
-    decoder = layers.concatenate([concat_tensor, decoder], axis=-1)
-    decoder = layers.BatchNormalization()(decoder)
-    #res
-    decoder1 = layers.Activation('relu')(decoder)
-    decoder = layers.Conv2D(num_filters, (3, 3), padding='same')(decoder1)
+    decodercon = layers.concatenate([concat_tensor, decoder], axis=-1)
+    decoder = layers.BatchNormalization()(decodercon)
+    
+    decoder = layers.Activation('relu')(decoder)
+    decoder = layers.Conv2D(num_filters, (3, 3), padding='same')(decoder)
     decoder = layers.BatchNormalization()(decoder)
     decoder = layers.Activation('relu')(decoder)
     decoder = layers.Conv2D(num_filters, (3, 3), padding='same')(decoder)
-    decoder = layers.add([decoder1,decoder])
+    #res
+    decoder = layers.add([decodercon,decoder])
     
     decoder = layers.BatchNormalization()(decoder)
     decoder = layers.Activation('relu')(decoder)
@@ -73,11 +72,9 @@ def res_shared_conv2(filters,linput_tensors,rinput_tensors):
     
 def segdepth(img_shape = (256,256),loss = bce_dice_loss,optimizer='adam',metrics=[dice_loss]):
     inputs = layers.Input(shape=img_shape)
-    linputs = inputs[:,:,:3]
-    rinputs = inputs[:,:,3:]
 
     #left right images shared conv
-    lres0,rres0 = res_shared_conv2(32,linputs,rinputs)
+    lres0,rres0 = res_shared_conv2(32,tf.split(inputs, [3, 3], axis = 2))
     lresp0 = layers.MaxPooling2D((2, 2), strides=(2, 2))(lres0)
     rresp0 = layers.MaxPooling2D((2, 2), strides=(2, 2))(rres0)
     #left right featuremaps merge
