@@ -128,5 +128,5 @@ def augmentation(input_imgs,
 		for i in range(num_of_parallel_imgs):
 			input_imgs[i] = rot_randomangle(input_imgs[i], angle)
 
-	return input_imgs
+	return [[input_imgs[0],input_imgs[1]],[[input_imgs[2],input_imgs[3]]
 
