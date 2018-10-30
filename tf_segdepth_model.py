@@ -159,10 +159,8 @@ def segdepth(img_shape = (256,256),loss = bce_dice_loss,optimizer='adam',metrics
     ddecoder04 = res_convtrans_u_block(ddecoder03, ddecoder02, 32)
     
     dep_outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(ddecoder04)
-    
-    outputs = layers.Concatenate([seg_outputs,dep_outputs],axis=-1)
-    
-    segdep_model = models.Model(inputs=[left_inputs,right_inputs], outputs=[outputs])
+
+    segdep_model = models.Model(inputs=[left_inputs,right_inputs], outputs=[seg_outputs,dep_outputs])
     
     segdep_model.summary()
     segdep_model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
