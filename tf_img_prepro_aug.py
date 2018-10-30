@@ -1,11 +1,22 @@
 import tensorflow as tf
 import tensorflow.contrib as tfcontrib
+import numpy as np
 
 def load_jpeg(image_path):
 	image = tf.read_file(image_path)
   	image = tf.image.decode_jpeg(image)
   	image = tf.cast(image, tf.float32)
 	return image
+
+def load_stereo_jpeg(left_image_path,right_image_path):
+	left_image = tf.read_file(left_image_path)
+	right_image_path = tf.read_file(right_image_path)
+  	left_image = tf.image.decode_jpeg(left_image)
+	right_image = tf.image.decode_jpeg(right_image)
+  	left_image = tf.cast(left_image, tf.float32)
+	right_image = tf.cast(right_image, tf.float32)
+	return [left_image,right_image]
+
 
 def train_val_split(img_array,ratio = 10):
     num_of_samples = len(img_array)
