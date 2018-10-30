@@ -71,10 +71,11 @@ def res_shared_conv2(filters,linput_tensors,rinput_tensors):
     return lrelu1,rrelu1
     
 def segdepth(img_shape = (256,256),loss = bce_dice_loss,optimizer='adam',metrics=[dice_loss]):
-    inputs = layers.Input(shape=img_shape)
+    left_inputs = layers.Input(shape=img_shape)
+    right_inputs = layers.Input(shape=img_shape)
 
     #left right images shared conv
-    lres0,rres0 = res_shared_conv2(32,tf.split(inputs, [3, 3], axis = 2))
+    lres0,rres0 = res_shared_conv2(32,left_inputs,right_inputs)
     lresp0 = layers.MaxPooling2D((2, 2), strides=(2, 2))(lres0)
     rresp0 = layers.MaxPooling2D((2, 2), strides=(2, 2))(rres0)
     #left right featuremaps merge
@@ -161,7 +162,7 @@ def segdepth(img_shape = (256,256),loss = bce_dice_loss,optimizer='adam',metrics
     
     outputs = layers.Concatenate([seg_outputs,dep_outputs],axis=-1)
     
-    segdep_model = models.Model(inputs=[inputs], outputs=[outputs])
+    segdep_model = models.Model(inputs=[left_inputs,right_inputs], outputs=[outputs])
     
     segdep_model.summary()
     segdep_model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
