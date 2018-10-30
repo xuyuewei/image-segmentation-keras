@@ -71,6 +71,7 @@ def res_shared_conv2(filters,linput_tensors,rinput_tensors):
     return lrelu1,rrelu1
     
 def segdepth(img_shape = (256,256),loss = bce_dice_loss,optimizer='adam',metrics=[dice_loss]):
+    #make sure the img_shape can be devided by 2^8.(32)
     left_inputs = layers.Input(shape=img_shape)
     right_inputs = layers.Input(shape=img_shape)
 
