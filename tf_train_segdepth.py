@@ -33,7 +33,7 @@ load_weights_path = args.load_weights_path
 
 
 
-num_of_samples = len(img_array)
+
 left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False)
 right_img_array = tf.data.Dataset.list_files(images_path+'/*11.png',shuffle=False)
 img_array = [[l,r] for l,r in zip(left_img_array,right_img_array)]
@@ -46,6 +46,7 @@ img_labels = tf.data.Dataset.from_tensor_slices((img_array,labels_array))
 img_labels = img_labels.shuffle(num_of_samples)
 
 #train_val_split
+num_of_samples = len(img_array)
 val_labels_data = None
 if validate:
     val_array = img_labels[:num_of_samples//10]
