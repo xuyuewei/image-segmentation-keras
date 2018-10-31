@@ -48,13 +48,13 @@ val_labels_data = None
 if validate:
     val_array = img_labels[:num_of_samples//10]
     img_labels = img_labels[num_of_samples//10:]
-    val_data = val_array.map(lambda x: [[load_jpeg(x[0][0],input_shape),load_jpeg(x[0][1],input_shape)],
-                                       [load_jpeg(x[1][0],input_shape),load_jpeg(x[1][0],input_shape)]])
+    val_data = val_array.map(lambda x: [load_stereo_jpeg(x[0][0],x[0][1],input_shape),
+                                       load_stereo_jpeg(x[1][0],x[1][1],input_shape)])
     val_data = val_data.batch(batch_size)
 
 #data augmentation
-img_labels_data = img_labels.map(lambda x: [[load_jpeg(x[0][0],input_shape),load_jpeg(x[0][1],input_shape)],
-                                           [load_jpeg(x[1][0],input_shape),load_jpeg(x[1][0],input_shape)]])
+img_labels_data = img_labels.map(lambda x: [load_stereo_jpeg(x[0][0],x[0][1],input_shape),
+                                           [load_stereo_jpeg(x[1][0],x[1][1],input_shape)])
 
 aug_train_data = img_labels_data.map(lambda x:augmentation(x,scale = 1/255))
 img_labels_data = img_labels_data.concatenate(aug_train_data)
