@@ -31,9 +31,6 @@ save_weights_path = os.path.join(args.save_weights_path, 'weights.hdf5')
 epochs = args.epochs
 load_weights_path = args.load_weights_path
 
-
-
-
 left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False)
 right_img_array = tf.data.Dataset.list_files(images_path+'/*11.png',shuffle=False)
 img_array = [[l,r] for l,r in zip(left_img_array,right_img_array)]
