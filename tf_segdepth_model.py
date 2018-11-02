@@ -70,6 +70,27 @@ def res_shared_conv2(filters,linput_tensors,rinput_tensors):
     
     return lrelu1,rrelu1
     
+def spp_module(input_tensors):
+    u1 = layers.UpSampling2D(size=(32, 32))(input_tensors)
+    u1s = conv_block(u1,16)
+    
+    u2 = layers.UpSampling2D(size=(16, 16))(u1s)
+    u2s = conv_block(u2,16)
+    
+    u3 = layers.UpSampling2D(size=(8, 8))(u2s)
+    u3s = conv_block(u3,16)
+
+    
+    u4 = layers.UpSampling2D(size=(4, 4))(u3s)
+    u4s = conv_block(u4,16)
+    
+    u5 = layers.UpSampling2D(size=(2, 2))(u4s)
+    u5s = conv_block(u5,16)
+    
+    spp = layers.Concatenate([u1s,u2s,u3s,u4s,u5s],axis=-1)
+    spp = conv_block(spp,32)
+    return spp
+
 def segdepth(img_shape = (256,256),loss = categorical_regression,optimizer='adam',metrics=[dice_loss]):
     #make sure the img_shape can be devided by 2^8.(32)
     left_inputs = layers.Input(shape=img_shape)
@@ -100,6 +121,7 @@ def segdepth(img_shape = (256,256),loss = categorical_regression,optimizer='adam
     lres3,rres3 = res_shared_conv2(256,lresp2,rresp2)
     lresp3 = layers.MaxPooling2D((2, 2), strides=(2, 2))(lres3)
     rresp3 = layers.MaxPooling2D((2, 2), strides=(2, 2))(rres3)
+    
     #left right featuremaps merge
     lrres3 = layers.add([lresp3,rresp3]) 
     lrcon3 = layers.Concatenate([lresp3,rresp3,lrres3],axis=-1)
@@ -113,9 +135,14 @@ def segdepth(img_shape = (256,256),loss = categorical_regression,optimizer='adam
     
     #come to center
     center0 = conv_block(lresp4, 1024)
-    center1 = encoder_block(lrcon4, 1024)
+    center1 = conv_block(lrcon4, 1024)
+    
+    #spp module
+    spp0 = spp_module(center0)
+    spp1 = spp_module(center1)
     
     #segment part
+    #u-net
     sdecoder4 = res_convtrans_u_block(center0, lres4, 512)
     
     sdecoder3 = res_convtrans_u_block(sdecoder4, lres3, 256)
@@ -125,41 +152,37 @@ def segdepth(img_shape = (256,256),loss = categorical_regression,optimizer='adam
     sdecoder1 = res_convtrans_u_block(sdecoder2, lres1, 64)
     
     sdecoder0 = res_convtrans_u_block(sdecoder1, lres0, 32)
+    #merge u and spp
+    u_spp0 = layers.Concatenate([spp0,sdecoder0],axis=-1)
     
-    seg_outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(decoder0)
+    seg_outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(u_spp0)
     
     #depth estimation part
+    #similar to unet
     ddecoder4 = res_convtrans_u_block(center1, lrcon4, 512)
     ddecoder41 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder4)
-    ddecoder42 = res_convtrans_u_block(ddecoder41, ddecoder4, 256)
-    ddecoder43 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder42)
-    ddecoder44 = convtrans_block(ddecoder43, ddecoder42, 512)
+    ddecoder42 = convtrans_block(ddecoder41, ddecoder4, 256)
     
-    ddecoder3 = res_convtrans_u_block(ddecoder44, lrcon3, 256)
+    ddecoder3 = res_convtrans_u_block(ddecoder42, lrcon3, 256)
     ddecoder31 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder3)
     ddecoder32 = res_convtrans_u_block(ddecoder31, ddecoder3, 128)
-    ddecoder33 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder32)
-    ddecoder34 = res_convtrans_u_block(ddecoder33, ddecoder32, 256)
     
-    ddecoder2 = res_convtrans_u_block(ddecoder34, lrcon2, 128)
+    ddecoder2 = res_convtrans_u_block(ddecoder32, lrcon2, 128)
     ddecoder21 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder2)
     ddecoder22 = res_convtrans_u_block(ddecoder21, ddecoder2, 64)
-    ddecoder23 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder22)
-    ddecoder24 = res_convtrans_u_block(ddecoder23, ddecoder22, 128)
     
-    ddecoder1 = convtrans_block(ddecoder2, lrcon1, 64)
+    ddecoder1 = convtrans_block(ddecoder22, lrcon1, 64)
     ddecoder11 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder1)
-    ddecoder12 = res_convtrans_u_block(ddecoder11, ddecoder1, 32)
-    ddecoder13 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder12)
-    ddecoder14 = res_convtrans_u_block(ddecoder13, ddecoder12, 64)
+    ddecoder12 = res_convtrans_u_block(ddecoder11, ddecoder1, 64)
     
-    ddecoder0 = res_convtrans_u_block(ddecoder14, lrcon0, 32)
+    ddecoder0 = res_convtrans_u_block(ddecoder12, lrcon0, 32)
     ddecoder01 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder0)
-    ddecoder02 = res_convtrans_u_block(ddecoder01, ddecoder0, 16)
-    ddecoder03 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder02)
-    ddecoder04 = res_convtrans_u_block(ddecoder03, ddecoder02, 32)
+    ddecoder02 = res_convtrans_u_block(ddecoder01, ddecoder0, 32)
     
-    dep_outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(ddecoder04)
+    #merge u and spp
+    u_spp1 = layers.Concatenate([spp1,ddecoder02],axis=-1)
+    
+    dep_outputs = layers.Conv2D(1, (1, 1), activation='softmax')(u_spp1)
 
     segdep_model = models.Model(inputs=[left_inputs,right_inputs], outputs=[seg_outputs,dep_outputs])
     
