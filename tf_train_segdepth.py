@@ -1,6 +1,6 @@
 import argparse
 import tf_segdepth_model
-import bce_dice_loss
+import seg_stereo_loss
 import tf_img_prepro_aug
 import numpy as np
 import tensorflow as tf
@@ -67,15 +67,18 @@ num_of_train_samples = len(img_labels_data)
 if retrain:
     #load model
     seg_depth_model = models.load_model(save_weights_path)
-#create unet model
-model = segdepth()
+    segdep_model.compile(optimizer=optimizer, loss= categorical_regression, metrics= [dice_loss,smooth_l1])
+else:
+    #create unet model
+    segdep_model = segdepth()
                                             
-callba = tf.keras.callbacks.ModelCheckpoint(filepath=save_weights_path, monitor='val_dice_loss', save_best_only=True, verbose=1)
+ModelCheckpoint = tf.keras.callbacks.ModelCheckpoint(filepath=save_weights_path, monitor='val_dice_loss', save_best_only=True, verbose=1)
+EarlyStopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss', min_delta=0.01,patience=1,verbose=1)
 
 #train
-history = model.fit(img_labels_data, 
-                   steps_per_epoch=int(np.ceil(num_of_train_samples / float(batch_size))),
-                   epochs=epochs,
-                   validation_data=val_data,
-                   validation_steps=int(np.ceil(num_of_train_samples / float(batch_size))),
-                   callbacks=[callba])
+history = segdep_model.fit(img_labels_data, 
+                           steps_per_epoch=int(np.ceil(num_of_train_samples / float(batch_size))),
+                           epochs=epochs,
+                           validation_data=val_data,
+                           validation_steps=int(np.ceil(num_of_train_samples / float(batch_size))),
+                           callbacks=[ModelCheckpoint,EarlyStopping])
