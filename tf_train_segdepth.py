@@ -15,6 +15,7 @@ parser.add_argument("--depth_path", type = str  )
 parser.add_argument("--input_shape", type=int , default = [480,160] )
 
 parser.add_argument("--epochs", type = int, default = 5 )
+parser.add_argument("--retrain", type = int, default = False )
 parser.add_argument("--batch_size", type = int, default = 2 )
 parser.add_argument("--val_batch_size", type = int, default = 2 )
 parser.add_argument("--load_weights_path", type = str , default = "")
@@ -29,6 +30,7 @@ input_shape = args.input_shape
 validate = args.validate
 save_weights_path = os.path.join(args.save_weights_path, 'weights.hdf5')
 epochs = args.epochs
+retrain = args.retrain
 load_weights_path = args.load_weights_path
 
 left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False)
@@ -48,21 +50,26 @@ val_labels_data = None
 if validate:
     val_array = img_labels[:num_of_samples//10]
     img_labels = img_labels[num_of_samples//10:]
-    val_data = val_array.map(lambda x: [load_stereo_jpeg(x[0][0],x[0][1],input_shape),
-                                       load_stereo_jpeg(x[1][0],x[1][1],input_shape)])
+    val_data = val_array.map(lambda x: ([load_stereo_jpeg(x[0][0],x[0][1],input_shape),
+                                       load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
+    
     val_data = val_data.batch(batch_size)
 
 #data augmentation
-img_labels_data = img_labels.map(lambda x: [load_stereo_jpeg(x[0][0],x[0][1],input_shape),
-                                           [load_stereo_jpeg(x[1][0],x[1][1],input_shape)])
-
+img_labels_data = img_labels.map(lambda x: ([load_stereo_jpeg(x[0][0],x[0][1],input_shape),
+                                           load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
+                                   
 aug_train_data = img_labels_data.map(lambda x:augmentation(x,scale = 1/255))
 img_labels_data = img_labels_data.concatenate(aug_train_data)
 img_labels_data = img_labels_data.batch(batch_size)
 num_of_train_samples = len(img_labels_data)
 
+if retrain:
+    #load model
+    seg_depth_model = models.load_model(save_weights_path)
 #create unet model
 model = segdepth()
+                                            
 callba = tf.keras.callbacks.ModelCheckpoint(filepath=save_weights_path, monitor='val_dice_loss', save_best_only=True, verbose=1)
 
 #train
