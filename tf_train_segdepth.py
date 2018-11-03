@@ -67,7 +67,6 @@ num_of_train_samples = len(img_labels_data)
 if retrain:
     #load model
     seg_depth_model = models.load_model(save_weights_path)
-    segdep_model.compile(optimizer=optimizer, loss= categorical_regression, metrics= [dice_loss,smooth_l1])
 else:
     #create unet model
     segdep_model = segdepth()
@@ -76,6 +75,8 @@ ModelCheckpoint = tf.keras.callbacks.ModelCheckpoint(filepath=save_weights_path,
 EarlyStopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss', min_delta=0.01,patience=1,verbose=1)
 
 #train
+segdep_model.compile(optimizer=optimizer, loss= categorical_regression, metrics= [dice_loss,smooth_l1])
+
 history = segdep_model.fit(img_labels_data, 
                            steps_per_epoch=int(np.ceil(num_of_train_samples / float(batch_size))),
                            epochs=epochs,
