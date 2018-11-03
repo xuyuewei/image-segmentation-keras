@@ -32,8 +32,9 @@ img_array = [[l,r] for l,r in zip(left_img_array,right_img_array)]
 
 img_data = img_array.map(lambda x: load_stereo_jpeg(x[0],x[1],input_shape))
 num_of_samples = len(img_array)
+
 #load model
-seg_depth_model = models.load_model(save_weights_path, custom_objects={'bce_dice_loss': bce_dice_loss,'dice_loss': dice_loss})
+seg_depth_model = models.load_model(save_weights_path)
 
 for i in range(num_of_samples):
     seg_depth = seg_depth_model.predict(img_data[i])
