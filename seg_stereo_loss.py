@@ -40,5 +40,5 @@ def regression_square_absolute(y_true, y_pred):
     return loss
 
 def categorical_regression(y_true, y_pred):
-    loss = categorical_dice(y_true[0], y_pred[0])*1.5 + regression_square_absolute(y_true[1], y_pred[1]) + smooth_l1(y_true[1], y_pred[1])
+    loss = categorical_dice(y_true[0], y_pred[0]) + regression_square_absolute(y_true[1], y_pred[1]) + smooth_l1(y_true[1], y_pred[1])
     return loss
