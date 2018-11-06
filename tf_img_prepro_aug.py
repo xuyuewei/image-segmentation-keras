@@ -119,7 +119,7 @@ def augmentation(input_imgs,
     if tf.less(random_choice, 0.5):
         for i in range(num_of_parallel_imgs):
             input_imgs[i] = flipran_img(input_imgs[i])
-	else:
+    else:
         for i in range(num_of_parallel_imgs):
             input_imgs[i] = rot_randomangle(input_imgs[i], angle)
 
