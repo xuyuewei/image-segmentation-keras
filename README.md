@@ -94,7 +94,7 @@ wget "https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vg
 
 
 
-## Training the Model
+## 01Training the theano Model
 
 To train the model run the following command:
 
@@ -113,6 +113,20 @@ THEANO_FLAGS=device=gpu,floatX=float32  python  train.py \
 
 Choose model_name from vgg_segnet  vgg_unet, vgg_unet2, fcn8, fcn32
 
+## 02Training the tf Model
+
+To train the model run the following command:
+
+```shell
+python  train.py \
+ --save_weights_path= "/home/xdjf/下载/image-segmentation-keras-tensorflow/" \
+ --images_path = "data/dataset1/images_prepped_train/" \
+ --seg_path = 
+ --depth_path = 
+ --input_height=320 \
+```
+
+Choose model_name from vgg_segnet  vgg_unet, vgg_unet2, fcn8, fcn32
 ## Getting the predictions
 
 To get the predictions of a trained model
