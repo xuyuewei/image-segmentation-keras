@@ -41,8 +41,8 @@ left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False
 right_img_array = tf.data.Dataset.list_files(images_path+'/*11.png',shuffle=False)
 img_array = [[l,r] for l,r in zip(left_img_array,right_img_array)]
 
-seg_array = tf.data.Dataset.list_files(seg_path,shuffle=False)
-depth_array = tf.data.Dataset.list_files(depth_path,shuffle=False)
+seg_array = tf.data.Dataset.list_files(seg_path+"/*.png",shuffle=False)
+depth_array = tf.data.Dataset.list_files(depth_path+"/*.png",shuffle=False)
 labels_array = [[l,r] for l,r in zip(seg_array,depth_array)]
 
 img_labels = tf.data.Dataset.from_tensor_slices((img_array,labels_array))
