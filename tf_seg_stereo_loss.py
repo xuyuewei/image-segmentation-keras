@@ -31,14 +31,10 @@ def bce_dice_loss(y_true, y_pred):
     loss = losses.binary_crossentropy(y_true, y_pred) + dice_loss(y_true, y_pred)
     return loss
 
-def categorical_dice(y_true, y_pred):
+def cat_dice_loss(y_true, y_pred):
     loss = losses.categorical_crossentropy(y_true, y_pred) + dice_loss(y_true, y_pred)
     return loss
     
-def regression_square_absolute(y_true, y_pred):
-    loss = losses.mean_squared_error(y_true, y_pred) + losses.mean_absolute_error(y_true, y_pred)
-    return loss
-
-def cat_regression_loss(y_true, y_pred):
-    loss = categorical_dice(y_true[0], y_pred[0]) + regression_square_absolute(y_true[1], y_pred[1]) + smooth_l1(y_true[1], y_pred[1])
+def reg_sa_loss(y_true, y_pred):
+    loss = losses.mean_squared_error(y_true, y_pred) + losses.mean_absolute_error(y_true, y_pred)++ smooth_l1(y_true, y_pred)
     return loss
