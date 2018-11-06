@@ -102,7 +102,8 @@ def augmentation(input_imgs,
                  scale = 1,  # Scale image e.g. 1 / 255.
                  hue_delta = 0.2,  # Adjust the hue of an RGB image by random factor
                  brightness = 0.3,
-                 saturation = 0.2,
+                 lsaturation = 0.1,
+                 usaturation = 0.3,
                  ranhorizontal_flip = False,  # Random left right flip,
                  ranvertical_flip = False,
                  ran_flip = False,
@@ -116,25 +117,21 @@ def augmentation(input_imgs,
     
     input_imgs = tf.image.random_hue(input_imgs, hue_delta)
     input_imgs = tf.image.random_brightness(input_imgs, brightness)
-    input_imgs = tf.image.random_saturation(input_imgs, saturation)       
+    input_imgs = tf.image.random_saturation(input_imgs, lsaturation,usaturation)       
     #merge process
 
     random_choice = tf.random_uniform([], 0.0, 1.0)
     
-    input_imgs = projective_random_transform(input_imgs,projective_transform_angle,img_size)
-    label_imgs = projective_random_transform(label_imgs,projective_transform_angle,img_size)
+    input_imgs,label_imgs = projective_random_transform(input_imgs,label_imgs,projective_transform_angle,img_size)
     
-    input_imgs = shift_img(input_imgs, width_shift_range, height_shift_range,img_size)
+    input_imgs,label_imgs = shift_img(input_imgs,label_imgs, width_shift_range, height_shift_range,img_size)
+    
     input_imgs = tf.to_float(input_imgs) * scale 
-    
-    label_imgs = shift_img(label_imgs, width_shift_range, height_shift_range,img_size)
     label_imgs = tf.to_float(label_imgs) * scale 
         
     if tf.less(random_choice, 0.5):
-        input_imgs = flipran_img(input_imgs)
-        label_imgs = flipran_img(label_imgs)
+        input_imgs,label_imgs = flipran_img(input_imgs,label_imgs)
     else:
-        input_imgs = rot_randomangle(input_imgs, angle)
-        label_imgs = rot_randomangle(label_imgs, angle)
+        input_imgs,label_imgs = rot_randomangle(input_imgs,label_imgs, angle)
 
     return input_imgs,label_imgs
