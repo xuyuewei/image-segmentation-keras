@@ -48,14 +48,14 @@ val_labels_data = None
 if validate:
     val_array = img_labels[:num_of_samples//10]
     img_labels = img_labels[num_of_samples//10:]
-    val_data = val_array.map(lambda x: ([load_stereo_jpeg(x[0][0],x[0][1],input_shape),
-                                       load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
+    val_data = val_array.map(lambda x: ([tf_img_prepro_aug.load_stereo_jpeg(x[0][0],x[0][1],input_shape),
+                                       tf_img_prepro_aug.load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
     
     val_data = val_data.batch(batch_size)
 
 #data augmentation
-img_labels_data = img_labels.map(lambda x: ([load_stereo_jpeg(x[0][0],x[0][1],input_shape),
-                                           load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
+img_labels_data = img_labels.map(lambda x: ([tf_img_prepro_aug.load_stereo_jpeg(x[0][0],x[0][1],input_shape),
+                                           tf_img_prepro_aug.load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
                                    
 aug_train_data = img_labels_data.map(lambda x:augmentation(x,scale = 1/255))
 img_labels_data = img_labels_data.concatenate(aug_train_data)
@@ -67,13 +67,13 @@ if retrain:
     seg_depth_model = models.load_model(save_weights_path)
 else:
     #create unet model
-    segdep_model = segdepth()
+    segdep_model = tf_segdepth_model.segdepth()
                                             
 ModelCheckpoint = tf.keras.callbacks.ModelCheckpoint(filepath=save_weights_path, monitor='val_dice_loss', save_best_only=True, verbose=1)
 EarlyStopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss', min_delta=0.01,patience=1,verbose=1)
 
 #train
-segdep_model.compile(optimizer=optimizer, loss= categorical_regression, metrics= [dice_loss,smooth_l1])
+segdep_model.compile(optimizer=optimizer, loss= seg_stereo_loss.cat_regression_loss, metrics= [seg_stereo_loss.dice_loss,seg_stereo_loss.smooth_l1])
 
 history = segdep_model.fit(img_labels_data, 
                            steps_per_epoch=int(np.ceil(num_of_train_samples / float(batch_size))),
