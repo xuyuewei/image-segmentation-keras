@@ -79,7 +79,7 @@ python  tf_train_segdepth.py \
  --batch_size = 1 \
  --retrain = True
 ```
-Choose model_name from vgg_segnet  vgg_unet, vgg_unet2, fcn8, fcn32
+
 ## Getting the predictions
 
 To get the seg_depth predictions of a trained tf_model
