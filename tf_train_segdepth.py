@@ -8,6 +8,8 @@ import tensorflow as tf
 from tensorflow.python.keras import models
 import os
 
+tf.enable_eager_execution()
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--save_weights_path", type = str  )

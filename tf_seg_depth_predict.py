@@ -3,6 +3,7 @@ from tensorflow.python.keras import models
 
 import tf_img_prepro_aug
 import tensorflow as tf
+tf.enable_eager_execution()
 import cv2
 import os
 
