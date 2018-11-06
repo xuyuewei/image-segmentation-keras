@@ -30,6 +30,7 @@ depth_path = args.depth_path
 batch_size = args.batch_size
 input_shape = args.input_shape
 validate = args.validate
+val_batch_size = args.val_batch_size
 save_weights_path = os.path.join(args.save_weights_path, 'weights.hdf5')
 epochs = args.epochs
 retrain = args.retrain
@@ -55,7 +56,7 @@ if validate:
     val_data = val_array.map(lambda x: ([tf_img_prepro_aug.load_stereo_jpeg(x[0][0],x[0][1],input_shape),
                                        tf_img_prepro_aug.load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
     
-    val_data = val_data.batch(batch_size)
+    val_data = val_data.batch(val_batch_size)
 
 #data augmentation
 img_labels_data = img_labels.map(lambda x: ([tf_img_prepro_aug.load_stereo_jpeg(x[0][0],x[0][1],input_shape),
