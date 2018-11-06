@@ -19,7 +19,7 @@ def smooth_l1(y_true, y_pred):
     y_pred_f = tf.reshape(y_pred, [-1])
     diff = tf.subtract(y_true_f, y_pred_f)
     abs_diff = tf.abs(diff)
-    smooth = tf.map_fn(lamda x: tf.cond(x < 1, lambda x: (0.5*tf.square(x)), lambda x: (x-0.5)),abs_diff)
+    smooth = tf.map_fn(lambda x: tf.cond(x < 1, lambda x: (0.5*tf.square(x)), lambda x: (x-0.5)),abs_diff)
     loss = tf.reduce_mean(smooth)
     return loss
     
