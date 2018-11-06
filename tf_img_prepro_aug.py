@@ -10,8 +10,8 @@ def load_jpeg(image_path,resize = (256,256)):
 
 def load_stereo_jpeg(left_image_path,right_image_path,resize = (256,256)):
 	left_image = tf.read_file(left_image_path)
-	right_image_path = tf.read_file(right_image_path)
-	left_image_path = tf.image.resize_images(left_image_path, resize)
+    right_image_path = tf.read_file(right_image_path)
+    left_image_path = tf.image.resize_images(left_image_path, resize)
     right_image_path = tf.image.resize_images(right_image_path, resize)
     left_image = tf.image.decode_jpeg(left_image)
 	right_image = tf.image.decode_jpeg(right_image)
