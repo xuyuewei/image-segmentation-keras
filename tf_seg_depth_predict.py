@@ -1,14 +1,11 @@
 import argparse
-from tensorflow.python.keras import layers
-from tensorflow.python.keras import losses
 from tensorflow.python.keras import models
 
+import tensorflow as tf
 import tf_img_prepro_aug
 
-import glob
 import cv2
-import numpy as np
-import random
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--save_weights_path", type = str  )
@@ -35,6 +32,6 @@ seg_depth_model = models.load_model(save_weights_path)
 
 for i in range(num_of_samples):
     seg_depth = seg_depth_model.predict(img_data[i])
-    cv2.imwrite(os.path.join(output_path,'seg'+str(i), seg_depth[0])
-    cv2.imwrite(os.path.join(output_path,'depth'+str(i), seg_depth[1])
+    cv2.imwrite(os.path.join(output_path,'seg'+str(i)), seg_depth[0])
+    cv2.imwrite(os.path.join(output_path,'depth'+str(i)), seg_depth[1])
 
