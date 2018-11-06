@@ -2,7 +2,9 @@ import argparse
 import tf_segdepth_model
 import seg_stereo_loss
 import tf_img_prepro_aug
+
 import numpy as np
+from tensorflow.python.keras import models
 import tensorflow as tf
 import os
 
@@ -40,10 +42,11 @@ depth_array = tf.data.Dataset.list_files(depth_path,shuffle=False)
 labels_array = [[l,r] for l,r in zip(seg_array,depth_array)]
 
 img_labels = tf.data.Dataset.from_tensor_slices((img_array,labels_array))
+num_of_samples = len(img_array)
 img_labels = img_labels.shuffle(num_of_samples)
 
 #train_val_split
-num_of_samples = len(img_array)
+
 val_labels_data = None
 if validate:
     val_array = img_labels[:num_of_samples//10]
@@ -57,7 +60,7 @@ if validate:
 img_labels_data = img_labels.map(lambda x: ([tf_img_prepro_aug.load_stereo_jpeg(x[0][0],x[0][1],input_shape),
                                            tf_img_prepro_aug.load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
                                    
-aug_train_data = img_labels_data.map(lambda x:augmentation(x,scale = 1/255))
+aug_train_data = img_labels_data.map(lambda x:tf_img_prepro_aug.augmentation(x,scale = 1/255))
 img_labels_data = img_labels_data.concatenate(aug_train_data)
 img_labels_data = img_labels_data.batch(batch_size)
 num_of_train_samples = len(img_labels_data)
@@ -73,7 +76,7 @@ ModelCheckpoint = tf.keras.callbacks.ModelCheckpoint(filepath=save_weights_path,
 EarlyStopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss', min_delta=0.01,patience=1,verbose=1)
 
 #train
-segdep_model.compile(optimizer=optimizer, loss= seg_stereo_loss.cat_regression_loss, metrics= [seg_stereo_loss.dice_loss,seg_stereo_loss.smooth_l1])
+segdep_model.compile(optimizer="adam", loss= seg_stereo_loss.cat_regression_loss, metrics= [seg_stereo_loss.dice_loss,seg_stereo_loss.smooth_l1])
 
 history = segdep_model.fit(img_labels_data, 
                            steps_per_epoch=int(np.ceil(num_of_train_samples / float(batch_size))),
