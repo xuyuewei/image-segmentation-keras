@@ -23,7 +23,6 @@ args = parser.parse_args()
 images_path = args.images_path
 input_shape =  args.input_shape
 output_path = args.output_path
-epoch_number = args.epoch_number
 save_weights_path = os.path.join(args.save_weights_path, 'weights.hdf5')
 
 left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False)
