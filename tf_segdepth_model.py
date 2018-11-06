@@ -1,4 +1,4 @@
-import seg_stereo_loss
+import tf_seg_stereo_loss
 
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import models
@@ -85,7 +85,8 @@ def spp_module(input_tensors):
     spp = conv_block(spp,32)
     return spp
 
-def segdepth(img_shape = (256,256),loss = seg_stereo_loss.cat_regression_loss,optimizer='adam',metrics=[seg_stereo_loss.dice_loss,seg_stereo_loss.smooth_l1]):
+def segdepth(img_shape = (256,256),loss = tf_seg_stereo_loss.cat_regression_loss,optimizer='adam',
+             metrics=[tf_seg_stereo_loss.dice_loss,tf_seg_stereo_loss.smooth_l1]):
     #make sure the img_shape can be devided by 2^8.(32)
     left_inputs = layers.Input(shape=img_shape)
     right_inputs = layers.Input(shape=img_shape)
