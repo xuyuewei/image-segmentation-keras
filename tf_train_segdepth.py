@@ -18,7 +18,6 @@ parser.add_argument("--epochs", type = int, default = 5 )
 parser.add_argument("--retrain", type = int, default = False )
 parser.add_argument("--batch_size", type = int, default = 1 )
 parser.add_argument("--val_batch_size", type = int, default = 1 )
-parser.add_argument("--load_weights_path", type = str , default = "")
 
 args = parser.parse_args()
 
@@ -31,7 +30,6 @@ validate = args.validate
 save_weights_path = os.path.join(args.save_weights_path, 'weights.hdf5')
 epochs = args.epochs
 retrain = args.retrain
-load_weights_path = args.load_weights_path
 
 left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False)
 right_img_array = tf.data.Dataset.list_files(images_path+'/*11.png',shuffle=False)
