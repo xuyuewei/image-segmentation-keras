@@ -57,8 +57,8 @@ def flipran_img(input_imgs):
     flip_prob = tf.random_uniform([], 0.0, 1.0)
     for i in range(len(input_imgs)):
         input_imgs[i] = tf.cond(tf.less(flip_prob, 0.3),
-                                lambda: (tf.image.flip_up_down(tf.image.flip_left_right(input_imgs[i]))
-                                         lambda: (tf.cond(tf.less(flip_prob,0.6),
+                                lambda: (tf.image.flip_up_down(tf.image.flip_left_right(input_imgs[i])),
+					 lambda: (tf.cond(tf.less(flip_prob,0.6),
                                                           lambda:(tf.image.flip_up_down(input_imgs[i])),
                                                           lambda:(tf.image.flip_left_right(input_imgs[i]))))))
     return input_imgs
