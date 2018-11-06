@@ -1,6 +1,5 @@
 import tensorflow as tf
 import tensorflow.contrib as tfcontrib
-import numpy as np
 
 def load_jpeg(image_path,resize = (256,256)):
 	image = tf.read_file(image_path)
