@@ -16,8 +16,8 @@ parser.add_argument("--input_shape", type=int , default = [480,160] )
 
 parser.add_argument("--epochs", type = int, default = 5 )
 parser.add_argument("--retrain", type = int, default = False )
-parser.add_argument("--batch_size", type = int, default = 2 )
-parser.add_argument("--val_batch_size", type = int, default = 2 )
+parser.add_argument("--batch_size", type = int, default = 1 )
+parser.add_argument("--val_batch_size", type = int, default = 1 )
 parser.add_argument("--load_weights_path", type = str , default = "")
 
 args = parser.parse_args()
