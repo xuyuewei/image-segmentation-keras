@@ -61,7 +61,8 @@ python  tf_train_segdepth.py \
  --depth_path = "/home/xdjf/xuyuewei/training/disp" \
  --input_shape = [480,160] \
  --epochs = 1 \
- --batch_size = 1
+ --batch_size = 1 \
+ --validate = True
 ```
 
 ## Retrain the tf Model
@@ -77,7 +78,8 @@ python  tf_train_segdepth.py \
  --input_shape = [480,160] \
  --epochs = 1 \
  --batch_size = 1 \
- --retrain = True
+ --retrain = True \
+ --validate = True
 ```
 
 ## Getting the predictions
