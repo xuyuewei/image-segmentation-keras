@@ -91,7 +91,7 @@ def spp_module(input_tensors):
     spp = conv_block(spp,32)
     return spp
 
-def segdepth(img_shape = (256,256),loss = categorical_regression,optimizer='adam',metrics=[dice_loss,smooth_l1]):
+def segdepth(img_shape = (256,256),loss = cat_regression_loss,optimizer='adam',metrics=[dice_loss,smooth_l1]):
     #make sure the img_shape can be devided by 2^8.(32)
     left_inputs = layers.Input(shape=img_shape)
     right_inputs = layers.Input(shape=img_shape)
