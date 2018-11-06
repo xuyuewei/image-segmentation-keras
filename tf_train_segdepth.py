@@ -23,6 +23,7 @@ parser.add_argument("--retrain", type = int, default = False )
 parser.add_argument("--batch_size", type = int, default = 1 )
 parser.add_argument("--validate", type = bool, default = False )
 parser.add_argument("--val_batch_size", type = int, default = 1 )
+parser.add_argument("--val_ratio", type = int, default = 0.1 )
 
 args = parser.parse_args()
 
@@ -33,6 +34,8 @@ batch_size = args.batch_size
 input_shape = args.input_shape
 validate = args.validate
 val_batch_size = args.val_batch_size
+val_ratio = args.val_ratio
+
 save_weights_path = os.path.join(args.save_weights_path, 'weights.hdf5')
 epochs = args.epochs
 retrain = args.retrain
@@ -46,29 +49,28 @@ depth_array = tf.data.Dataset.list_files(depth_path+"/*.png",shuffle=False)
 labels_array = [[l,r] for l,r in zip(seg_array,depth_array)]
 
 img_labels = tf.data.Dataset.from_tensor_slices((img_array,labels_array))
-num_of_samples = len(img_array)
-img_labels = img_labels.shuffle(num_of_samples)
+num_of_train_samples = tf.strings.length(img_array)
+img_labels = img_labels.shuffle(num_of_train_samples)
 
 #train_val_split
 
-val_labels_data = None
 if validate:
-    val_array = img_labels[:num_of_samples//10]
-    img_labels = img_labels[num_of_samples//10:]
-    val_data = val_array.map(lambda x: ([tf_img_prepro_aug.load_stereo_jpeg(x[0][0],x[0][1],input_shape),
-                                       tf_img_prepro_aug.load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
-    
+    val_array = img_labels.take(num_of_train_samples*val_ratio)
+    img_labels = img_labels.take(num_of_train_samples*(1-val_ratio))
+    val_data = val_array.map(lambda x,y: [tf_img_prepro_aug.load_stereo_jpeg(x[0],x[1],input_shape),
+                                          tf_img_prepro_aug.load_stereo_jpeg(y[0],y[1],input_shape)])
     val_data = val_data.batch(val_batch_size)
+    num_of_train_samples = np.ceil(num_of_train_samples*0.9)
 
 #data augmentation
-img_labels_data = img_labels.map(lambda x: ([tf_img_prepro_aug.load_stereo_jpeg(x[0][0],x[0][1],input_shape),
-                                           tf_img_prepro_aug.load_stereo_jpeg(x[1][0],x[1][1],input_shape)]))
+img_labels_data = img_labels.map(lambda x,y: [tf_img_prepro_aug.load_stereo_jpeg(x[0],x[1],input_shape),
+                                           tf_img_prepro_aug.load_stereo_jpeg(y[0],y[1],input_shape)])
                                    
-aug_train_data = img_labels_data.map(lambda x:tf_img_prepro_aug.augmentation(x,scale = 1/255))
+aug_train_data = img_labels_data.map(lambda x,y:tf_img_prepro_aug.augmentation(x,y,scale = 1/255))
 img_labels_data = img_labels_data.concatenate(aug_train_data)
 img_labels_data = img_labels_data.batch(batch_size)
-num_of_train_samples = len(img_labels_data)
 
+num_of_train_samples = np.ceil(num_of_train_samples*2)
 if retrain:
     #load model
     seg_depth_model = models.load_model(save_weights_path)
