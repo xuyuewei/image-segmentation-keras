@@ -1,6 +1,7 @@
 import argparse
 import tf_segdepth_model
-import seg_stereo_loss
+
+import tf_seg_stereo_loss
 import tf_img_prepro_aug
 import numpy as np
 import tensorflow as tf
@@ -18,6 +19,7 @@ parser.add_argument("--input_shape", type=int , default = [480,160] )
 parser.add_argument("--epochs", type = int, default = 5 )
 parser.add_argument("--retrain", type = int, default = False )
 parser.add_argument("--batch_size", type = int, default = 1 )
+parser.add_argument("--validate", type = bool, default = False )
 parser.add_argument("--val_batch_size", type = int, default = 1 )
 
 args = parser.parse_args()
@@ -75,7 +77,7 @@ ModelCheckpoint = tf.keras.callbacks.ModelCheckpoint(filepath=save_weights_path,
 EarlyStopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss', min_delta=0.01,patience=1,verbose=1)
 
 #train
-segdep_model.compile(optimizer="adam", loss= seg_stereo_loss.cat_regression_loss, metrics= [seg_stereo_loss.dice_loss,seg_stereo_loss.smooth_l1])
+segdep_model.compile(optimizer="adam", loss= tf_seg_stereo_loss.cat_regression_loss, metrics= [tf_seg_stereo_loss.dice_loss,tf_seg_stereo_loss.smooth_l1])
 
 history = segdep_model.fit(img_labels_data, 
                            steps_per_epoch=int(np.ceil(num_of_train_samples / float(batch_size))),
