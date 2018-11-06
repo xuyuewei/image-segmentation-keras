@@ -11,7 +11,7 @@ Image Segmentation : Implementation of UNet and seg_depth models in tf.keras.
 ## Models 
 
 * U-Net_tf-keras
-*seg_depth_tf-keras
+* Seg_depth_tf-keras
 
 ## Getting Started
 
