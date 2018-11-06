@@ -5,7 +5,6 @@ from tensorflow.python.keras import models
 
 import tf_img_prepro_aug
 
-import 
 import glob
 import cv2
 import numpy as np
