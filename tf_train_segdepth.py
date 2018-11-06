@@ -2,10 +2,9 @@ import argparse
 import tf_segdepth_model
 import seg_stereo_loss
 import tf_img_prepro_aug
-
 import numpy as np
-from tensorflow.python.keras import models
 import tensorflow as tf
+from tensorflow.python.keras import models
 import os
 
 

@@ -1,13 +1,7 @@
 import seg_stereo_loss
 
-import tensorflow as tf
-import tensorflow.contrib as tfcontrib
 from tensorflow.python.keras import layers
-from tensorflow.python.keras import losses
 from tensorflow.python.keras import models
-from tensorflow.python.keras import backend as K
-
-import numpy as np
 
 def conv_block(input_tensor, num_filters):
     #tf implemention
@@ -161,7 +155,7 @@ def segdepth(img_shape = (256,256),loss = seg_stereo_loss.cat_regression_loss,op
     #similar to unet
     ddecoder4 = res_convtrans_u_block(center1, lrcon4, 512)
     ddecoder41 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder4)
-    ddecoder42 = convtrans_block(ddecoder41, ddecoder4, 256)
+    ddecoder42 = res_convtrans_u_block(ddecoder41, ddecoder4, 256)
     
     ddecoder3 = res_convtrans_u_block(ddecoder42, lrcon3, 256)
     ddecoder31 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder3)
@@ -171,7 +165,7 @@ def segdepth(img_shape = (256,256),loss = seg_stereo_loss.cat_regression_loss,op
     ddecoder21 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder2)
     ddecoder22 = res_convtrans_u_block(ddecoder21, ddecoder2, 64)
     
-    ddecoder1 = convtrans_block(ddecoder22, lrcon1, 64)
+    ddecoder1 = res_convtrans_u_block(ddecoder22, lrcon1, 64)
     ddecoder11 = layers.MaxPooling2D((2, 2), strides=(2, 2))(ddecoder1)
     ddecoder12 = res_convtrans_u_block(ddecoder11, ddecoder1, 64)
     
