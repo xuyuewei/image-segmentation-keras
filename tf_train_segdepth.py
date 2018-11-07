@@ -2,10 +2,11 @@ import argparse
 import tf_segdepth_model
 
 import tf_seg_stereo_loss
-import tf_img_prepro_aug
+import tf_preprocess
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import models
+from tensorflow.python.keras import preprocessing
 import os
 
 tf.enable_eager_execution()
@@ -42,35 +43,70 @@ retrain = args.retrain
 
 left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False)
 right_img_array = tf.data.Dataset.list_files(images_path+'/*11.png',shuffle=False)
-img_array = [[l,r] for l,r in zip(left_img_array,right_img_array)]
 
 seg_array = tf.data.Dataset.list_files(seg_path+"/*.png",shuffle=False)
 depth_array = tf.data.Dataset.list_files(depth_path+"/*.png",shuffle=False)
-labels_array = [[l,r] for l,r in zip(seg_array,depth_array)]
 
-img_labels = tf.data.Dataset.from_tensor_slices((img_array,labels_array))
-num_of_train_samples = tf.strings.length(img_array)
-img_labels = img_labels.shuffle(num_of_train_samples)
+num_of_train_samples = len(list(left_img_array))
 
 #train_val_split
-
+val_generator = None
 if validate:
-    val_array = img_labels.take(num_of_train_samples*val_ratio)
-    img_labels = img_labels.take(num_of_train_samples*(1-val_ratio))
-    val_data = val_array.map(lambda x,y: [tf_img_prepro_aug.load_stereo_jpeg(x[0],x[1],input_shape),
-                                          tf_img_prepro_aug.load_stereo_jpeg(y[0],y[1],input_shape)])
-    val_data = val_data.batch(val_batch_size)
-    num_of_train_samples = np.ceil(num_of_train_samples*0.9)
+    val_left_img_array = left_img_array.take(num_of_train_samples*val_ratio)
+    val_right_img_array = right_img_array.take(num_of_train_samples*val_ratio)
+    val_seg_array = seg_array.take(num_of_train_samples*val_ratio)
+    val_depth_array = depth_array.take(num_of_train_samples*val_ratio)
+    
+    rest = 1-val_ratio
+    left_img_array = left_img_array.take(num_of_train_samples*rest)
+    right_img_array = right_img_array.take(num_of_train_samples*rest)
+    seg_array = seg_array.take(num_of_train_samples*rest)
+    depth_array = depth_array.take(num_of_train_samples*rest)
+    
+    
+    val_left_img_array = val_left_img_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+    val_right_img_array = val_right_img_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+    val_seg_array = val_seg_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+    val_depth_array = val_depth_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+    
+    val_generator = zip(val_left_img_array,val_right_img_array,val_seg_array,val_depth_array)
 
 #data augmentation
-img_labels_data = img_labels.map(lambda x,y: [tf_img_prepro_aug.load_stereo_jpeg(x[0],x[1],input_shape),
-                                           tf_img_prepro_aug.load_stereo_jpeg(y[0],y[1],input_shape)])
+left_img_array = left_img_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+right_img_array = right_img_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+seg_array = seg_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+depth_array = depth_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
                                    
-aug_train_data = img_labels_data.map(lambda x,y:tf_img_prepro_aug.augmentation(x,y,scale = 1/255))
-img_labels_data = img_labels_data.concatenate(aug_train_data)
-img_labels_data = img_labels_data.batch(batch_size)
+data_gen_args = dict(featurewise_center=True,
+                     featurewise_std_normalization=True,
+                     rotation_range=90,
+                     width_shift_range=0.2,
+                     height_shift_range=0.2,
+                     brightness_range=0.3, 
+                     shear_range=0.3, 
+                     zoom_range=0.2,
+                     horizontal_flip=True, 
+                     vertical_flip=True)
 
-num_of_train_samples = np.ceil(num_of_train_samples*2)
+left_img_datagen = preprocessing.image.ImageDataGenerator(**data_gen_args)
+right_img_datagen = preprocessing.image.ImageDataGenerator(**data_gen_args)
+seg_img_datagen = preprocessing.image.ImageDataGenerator(**data_gen_args)
+depth_img_datagen = preprocessing.image.ImageDataGenerator(**data_gen_args)
+
+seed = 1
+left_img_datagen.fit(left_img_array, augment=True, seed=seed)
+right_img_datagen.fit(right_img_array, augment=True, seed=seed)
+seg_img_datagen.fit(seg_array, augment=True, seed=seed)
+depth_img_datagen.fit(depth_array, augment=True, seed=seed)
+
+left_imggen = left_img_datagen.flow(left_img_array,batch_size = batch_size)
+right_imggen = left_img_datagen.flow(right_img_array,batch_size = batch_size)
+seg_imggen = left_img_datagen.flow(seg_array,batch_size = batch_size)
+depth_imggen = left_img_datagen.flow(depth_array,batch_size = batch_size)
+
+train_generator = zip(left_imggen, right_imggen,seg_imggen,depth_imggen)
+
+
 if retrain:
     #load model
     seg_depth_model = models.load_model(save_weights_path)
@@ -84,9 +120,7 @@ EarlyStopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss', min_de
 #train
 segdep_model.compile(optimizer="adam", loss= tf_seg_stereo_loss.cat_regression_loss, metrics= [tf_seg_stereo_loss.dice_loss,tf_seg_stereo_loss.smooth_l1])
 
-history = segdep_model.fit(img_labels_data, 
-                           steps_per_epoch=int(np.ceil(num_of_train_samples / float(batch_size))),
-                           epochs=epochs,
-                           validation_data=val_data,
-                           validation_steps=int(np.ceil(num_of_train_samples / float(batch_size))),
-                           callbacks=[ModelCheckpoint,EarlyStopping])
+history = segdep_model.fit_generator(train_generator, 
+                                     epochs=epochs,
+                                     validation_data=val_generator,
+                                     callbacks=[ModelCheckpoint,EarlyStopping])

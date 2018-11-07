@@ -55,14 +55,13 @@ To train the model run the following command:
 
 ```shell
 python  tf_train_segdepth.py \
- --save_weights_path "/home/xdjf/xuyuewei" \
- --images_path "/home/xdjf/xuyuewei/training/image" \
- --seg_path "/home/xdjf/xuyuewei/training/semantic_rgb" \
- --depth_path "/home/xdjf/xuyuewei/training/disp" \
- --input_shape [480,160] \
- --epochs 1 \
- --batch_size 1 \
- --validate True
+ --save_weights_path= "/home/xdjf/xuyuewei" \
+ --images_path = "/home/xdjf/xuyuewei/training/image" \
+ --seg_path = "/home/xdjf/xuyuewei/training/semantic_rgb" \
+ --depth_path = "/home/xdjf/xuyuewei/training/disp" \
+ --input_shape = [480,160] \
+ --epochs = 1 \
+ --batch_size = 1
 ```
 
 ## Retrain the tf Model
@@ -71,15 +70,14 @@ To train the model run the following command:
 
 ```shell
 python  tf_train_segdepth.py \
- --save_weights_path "/home/xdjf/xuyuewei" \
- --images_path "/home/xdjf/xuyuewei/training/image" \
- --seg_path "/home/xdjf/xuyuewei/training/semantic_rgb" \
- --depth_path "/home/xdjf/xuyuewei/training/disp" \
- --input_shape [480,160] \
- --epochs 1 \
- --batch_size 1 \
- --retrain True \
- --validate True
+ --save_weights_path= "/home/xdjf/xuyuewei" \
+ --images_path = "/home/xdjf/xuyuewei/training/image" \
+ --seg_path = "/home/xdjf/xuyuewei/training/semantic_rgb" \
+ --depth_path = "/home/xdjf/xuyuewei/training/disp" \
+ --input_shape = [480,160] \
+ --epochs = 1 \
+ --batch_size = 1 \
+ --retrain = True
 ```
 
 ## Getting the predictions
@@ -88,8 +86,8 @@ To get the seg_depth predictions of a trained tf_model
 
 ```shell
 python  seg_depth_predict.py \
- --save_weights_path "/home/xdjf/xuyuewei" \
- --images_path "/home/xdjf/xuyuewei/training/val" \
- --input_shape [480,160]
+ --save_weights_path= "/home/xdjf/xuyuewei" \
+ --images_path = "/home/xdjf/xuyuewei/training/val" \
+ --input_shape = [480,160]
 ```
 

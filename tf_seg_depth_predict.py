@@ -24,7 +24,7 @@ left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False
 right_img_array = tf.data.Dataset.list_files(images_path+'/*11.png',shuffle=False)
 img_array = [[l,r] for l,r in zip(left_img_array,right_img_array)]
 
-img_data = img_array.map(lambda x: tf_img_prepro_aug.load_stereo_jpeg(x[0],x[1],input_shape))
+img_data = img_array.map(lambda x,y: tf_img_prepro_aug.load_stereo_jpeg(x,y,input_shape))
 num_of_samples = len(img_array)
 
 #load model
