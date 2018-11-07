@@ -17,7 +17,7 @@ parser.add_argument("--save_weights_path", type = str  )
 parser.add_argument("--images_path", type = str  )
 parser.add_argument("--seg_path", type = str  )
 parser.add_argument("--depth_path", type = str  )
-parser.add_argument("--input_shape", type=int , default = [480,160] )
+parser.add_argument("--input_shape", type=int , default = (480,160) )
 
 parser.add_argument("--epochs", type = int, default = 5 )
 parser.add_argument("--retrain", type = int, default = False )
@@ -41,46 +41,46 @@ save_weights_path = os.path.join(args.save_weights_path, 'weights.hdf5')
 epochs = args.epochs
 retrain = args.retrain
 
-left_img_array = [x for x in os.listdir(images_path)  if os.path.splitext(x)[0][-1]=='0']
-right_img_array = [x for x in os.listdir(images_path)  if os.path.splitext(x)[0][-1]=='1']
-seg_array = [x for x in os.listdir(images_path)]
-depth_array = [x for x in os.listdir(images_path)]
+left_img_array = [os.path.join(images_path,x) for x in os.listdir(images_path) if os.path.splitext(x)[0][-1]=='0']
+right_img_array = [os.path.join(images_path,x) for x in os.listdir(images_path) if os.path.splitext(x)[0][-1]=='1']
+seg_array = [os.path.join(images_path,x) for x in os.listdir(images_path)]
+depth_array = [os.path.join(images_path,x) for x in os.listdir(images_path)]
 
 num_of_train_samples = len(left_img_array)
-
+train_val_split = np.int(num_of_train_samples*val_ratio)
 #train_val_split
 val_generator = None
 if validate:
-    val_left_img_array = left_img_array[:num_of_train_samples*val_ratio]
-    val_right_img_array = right_img_array[:num_of_train_samples*val_ratio]
-    val_seg_array = seg_array[:num_of_train_samples*val_ratio]
-    val_depth_array = depth_array[:num_of_train_samples*val_ratio]
+    val_left_img_array = left_img_array[:train_val_split]
+    val_right_img_array = right_img_array[:train_val_split]
+    val_seg_array = seg_array[:train_val_split]
+    val_depth_array = depth_array[:train_val_split]
     
-    left_img_array = left_img_array[num_of_train_samples*val_ratio:]
-    right_img_array = right_img_array[num_of_train_samples*val_ratio:]
-    seg_array = seg_array[num_of_train_samples*val_ratio:]
-    depth_array = depth_array[num_of_train_samples*val_ratio:]
+    left_img_array = left_img_array[train_val_split:]
+    right_img_array = right_img_array[train_val_split:]
+    seg_array = seg_array[train_val_split:]
+    depth_array = depth_array[train_val_split:]
     
     
-    val_left_img_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),val_left_img_array)
-    val_right_img_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),val_right_img_array)
-    val_seg_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),val_seg_array)
-    val_depth_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),val_depth_array)
+    val_left_img_array = np.array([tf_preprocess.cvload_img(x,input_shape) for x in val_left_img_array])
+    val_right_img_array = np.array([tf_preprocess.cvload_img(x,input_shape) for x in val_right_img_array])
+    val_seg_array = np.array([tf_preprocess.cvload_img(x,input_shape) for x in val_seg_array])
+    val_depth_array = np.array([tf_preprocess.cvload_img(x,input_shape) for x in val_depth_array])
     
-    val_generator = zip(val_left_img_array,val_right_img_array,val_seg_array,val_depth_array)
+    val_generator = [val_left_img_array,val_right_img_array,val_seg_array,val_depth_array]
 
 #data augmentation
-left_img_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),left_img_array)
-right_img_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),right_img_array)
-seg_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),seg_array)
-depth_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),depth_array)
+left_img_array = np.array([tf_preprocess.cvload_img(x,input_shape) for x in left_img_array])
+right_img_array = np.array([tf_preprocess.cvload_img(x,input_shape) for x in right_img_array])
+seg_array = np.array([tf_preprocess.cvload_img(x,input_shape) for x in seg_array])
+depth_array = np.array([tf_preprocess.cvload_img(x,input_shape) for x in depth_array])
                                    
 data_gen_args = dict(featurewise_center=True,
                      featurewise_std_normalization=True,
                      rotation_range=90,
                      width_shift_range=0.2,
                      height_shift_range=0.2,
-                     brightness_range=0.3, 
+                     brightness_range=(0,0.3), 
                      shear_range=0.3, 
                      zoom_range=0.2,
                      horizontal_flip=True, 
@@ -110,7 +110,7 @@ if retrain:
     seg_depth_model = models.load_model(save_weights_path)
 else:
     #create unet model
-    segdep_model = tf_segdepth_model.segdepth()
+    segdep_model = tf_segdepth_model.segdepth(input_shape)
                                             
 ModelCheckpoint = tf.keras.callbacks.ModelCheckpoint(filepath=save_weights_path, monitor='val_dice_loss', save_best_only=True, verbose=1)
 EarlyStopping = tf.keras.callbacks.EarlyStopping(monitor='val_dice_loss', min_delta=0.01,patience=1,verbose=1)
