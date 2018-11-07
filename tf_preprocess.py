@@ -1,14 +1,19 @@
 import tensorflow as tf
 import tensorflow.contrib as tfcontrib
+import cv2 as cv
 
 def load_jpeg(image_path,resize = (256,256)):
     image = tf.read_file(image_path)
     
     image = tf.image.decode_jpeg(image)
     
-    image = tf.image.resize_images(image, resize)
-
+    image = cv.resize(image,resize, interpolation = cv.INTER_LINEAR)
     image = tf.cast(image, tf.float32)
+    return image
+
+def cvload_img(image_path,resize = (256,256)):
+    image = cv.imread(image_path)
+    image = tf.image.resize_images(image, resize)
     return image
 
 def load_stereo_jpeg(left_image_path,right_image_path,resize = (256,256)):

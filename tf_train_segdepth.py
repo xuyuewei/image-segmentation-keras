@@ -1,6 +1,6 @@
 import argparse
 import tf_segdepth_model
-
+import cv2 as cv
 import tf_seg_stereo_loss
 import tf_preprocess
 import numpy as np
@@ -41,41 +41,39 @@ save_weights_path = os.path.join(args.save_weights_path, 'weights.hdf5')
 epochs = args.epochs
 retrain = args.retrain
 
-left_img_array = tf.data.Dataset.list_files(images_path+'/*10.png',shuffle=False)
-right_img_array = tf.data.Dataset.list_files(images_path+'/*11.png',shuffle=False)
+left_img_array = [x for x in os.listdir(images_path)  if os.path.splitext(x)[0][-1]=='0']
+right_img_array = [x for x in os.listdir(images_path)  if os.path.splitext(x)[0][-1]=='1']
+seg_array = [x for x in os.listdir(images_path)]
+depth_array = [x for x in os.listdir(images_path)]
 
-seg_array = tf.data.Dataset.list_files(seg_path+"/*.png",shuffle=False)
-depth_array = tf.data.Dataset.list_files(depth_path+"/*.png",shuffle=False)
-
-num_of_train_samples = len(list(left_img_array))
+num_of_train_samples = len(left_img_array)
 
 #train_val_split
 val_generator = None
 if validate:
-    val_left_img_array = left_img_array.take(num_of_train_samples*val_ratio)
-    val_right_img_array = right_img_array.take(num_of_train_samples*val_ratio)
-    val_seg_array = seg_array.take(num_of_train_samples*val_ratio)
-    val_depth_array = depth_array.take(num_of_train_samples*val_ratio)
+    val_left_img_array = left_img_array[:num_of_train_samples*val_ratio]
+    val_right_img_array = right_img_array[:num_of_train_samples*val_ratio]
+    val_seg_array = seg_array[:num_of_train_samples*val_ratio]
+    val_depth_array = depth_array[:num_of_train_samples*val_ratio]
     
-    rest = 1-val_ratio
-    left_img_array = left_img_array.take(num_of_train_samples*rest)
-    right_img_array = right_img_array.take(num_of_train_samples*rest)
-    seg_array = seg_array.take(num_of_train_samples*rest)
-    depth_array = depth_array.take(num_of_train_samples*rest)
+    left_img_array = left_img_array[num_of_train_samples*val_ratio:]
+    right_img_array = right_img_array[num_of_train_samples*val_ratio:]
+    seg_array = seg_array[num_of_train_samples*val_ratio:]
+    depth_array = depth_array[num_of_train_samples*val_ratio:]
     
     
-    val_left_img_array = val_left_img_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
-    val_right_img_array = val_right_img_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
-    val_seg_array = val_seg_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
-    val_depth_array = val_depth_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+    val_left_img_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),val_left_img_array)
+    val_right_img_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),val_right_img_array)
+    val_seg_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),val_seg_array)
+    val_depth_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),val_depth_array)
     
     val_generator = zip(val_left_img_array,val_right_img_array,val_seg_array,val_depth_array)
 
 #data augmentation
-left_img_array = left_img_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
-right_img_array = right_img_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
-seg_array = seg_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
-depth_array = depth_array.map(lambda x:tf_preprocess.load_jpeg(x,input_shape))
+left_img_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),left_img_array)
+right_img_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),right_img_array)
+seg_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),seg_array)
+depth_array = map(lambda x:tf_preprocess.cvload_img(x,input_shape),depth_array)
                                    
 data_gen_args = dict(featurewise_center=True,
                      featurewise_std_normalization=True,
