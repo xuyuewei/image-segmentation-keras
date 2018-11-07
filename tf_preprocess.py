@@ -7,13 +7,12 @@ def load_jpeg(image_path,resize = (256,256)):
     
     image = tf.image.decode_jpeg(image)
     
-    image = cv.resize(image,resize, interpolation = cv.INTER_LINEAR)
     image = tf.cast(image, tf.float32)
     return image
 
 def cvload_img(image_path,resize = (256,256)):
     image = cv.imread(image_path)
-    image = tf.image.resize_images(image, resize)
+    image = cv.resize(image,resize, interpolation = cv.INTER_LINEAR)
     return image
 
 def load_stereo_jpeg(left_image_path,right_image_path,resize = (256,256)):
